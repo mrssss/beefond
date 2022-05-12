@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="chapter_1.html"><strong aria-hidden="true">1.</strong> Chapter 1</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">C语言</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="pointer/basic.html"><strong aria-hidden="true">1.</strong> 基础</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="tips/min_macro.html"><strong aria-hidden="true">2.</strong> min宏的实现</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -135,8 +135,99 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="chapter-1"><a class="header" href="#chapter-1">Chapter 1</a></h1>
-<p>Test </p>
+                        <h1 id="welcome"><a class="header" href="#welcome">Welcome</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="基础"><a class="header" href="#基础">基础</a></h1>
+<h2 id="声明指针"><a class="header" href="#声明指针">声明指针</a></h2>
+<p><code>*</code>将变量声明为指针。
+类型 <code>*</code> 变量名。</p>
+<pre><code class="language-c">type * var;
+</code></pre>
+<h2 id="运算符重载"><a class="header" href="#运算符重载"><code>*</code>运算符重载</a></h2>
+<h3 id="乘法运算符"><a class="header" href="#乘法运算符">乘法运算符</a></h3>
+<pre><code class="language-c">10 * 20
+</code></pre>
+<h3 id="声明指针-1"><a class="header" href="#声明指针-1">声明指针</a></h3>
+<pre><code class="language-c">int a = 10;
+int * p = &amp;a;
+</code></pre>
+<h3 id="解引用指针"><a class="header" href="#解引用指针">解引用指针</a></h3>
+<pre><code class="language-c">*p = 20;
+</code></pre>
+<h2 id="阅读指针相关声明"><a class="header" href="#阅读指针相关声明">阅读指针相关声明</a></h2>
+<p>在阅读指针的声明时，从右向左读，会更加容易一些</p>
+<p>例1:</p>
+<pre><code class="language-c">const int* a;
+</code></pre>
+<p>指针所指向的内容是常量不可变
+(不可以通过指针改变它，并不是他本身不可以作为左值）</p>
+<p>例2:</p>
+<pre><code class="language-c">int * const a;
+</code></pre>
+<p>指针本身是常量不可变，只能指向它。</p>
+<p>例3:</p>
+<pre><code class="language-c">const int * const a;
+</code></pre>
+<p>两者都不可变</p>
+<p>例4:</p>
+<pre><code class="language-c">const int ** a;
+</code></pre>
+<p><code>a</code>是一个指向<code>const int *</code>指针的指针</p>
+<p>例5:</p>
+<pre><code class="language-c">int ** const a；
+</code></pre>
+<p><code>a</code>是一个指向<code>int*</code>的指针，且<code>a</code>被<code>const</code>修饰，本身是常量不可变</p>
+<h2 id="取地址"><a class="header" href="#取地址">取地址</a></h2>
+<pre><code class="language-c">int a = 10;
+int * p = &amp;a;
+</code></pre>
+<p>给指针赋值的时候要求，指针指向的对象类型相同，</p>
+<pre><code class="language-c">float a = 10;
+int * p = &amp;a;
+</code></pre>
+<p>如果指针和地址指向的对象的类型不匹配，编译器会报错，</p>
+<pre><code>error: cannot convert ‘float*’ to ‘int*’ in initialization
+    2 | int * p = &amp;a;
+      |           ^~
+      |           |
+      |           float*
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="min宏的实现"><a class="header" href="#min宏的实现">min宏的实现</a></h1>
+<h2 id="通过函数实现最小值函数"><a class="header" href="#通过函数实现最小值函数">通过函数实现最小值函数</a></h2>
+<p>通过函数来实现最小值：</p>
+<pre><code class="language-c">int min(int i, int j)
+{
+    return i &lt; j ? i : j;
+}
+</code></pre>
+<p>不能支持更多的类型，比如float类型的最小值函数的逻辑和int类型是一样的，
+但是需要再实现一个min_float函数。</p>
+<h2 id="思路"><a class="header" href="#思路">思路</a></h2>
+<p>使用宏定义来实现</p>
+<pre><code class="language-c">#define MIN(a, b) ((a) &lt; (b) ? (a) : (b))
+</code></pre>
+<p>普通情况下使用<code>MIN(i, j)</code>会正常被宏替换成<code>((i) &lt; (j) ? (i) : (j))</code>，</p>
+<p>这并不会有什么问题，但如果像调用函数实现的<code>min(i++, j++)</code>的时候，这种宏实现就会出问题了；
+<code>MIN(i++, j++)</code>会被替换成<code>((i++) &lt; (j++) ? (i++) : (j++))</code></p>
+<h2 id="改进"><a class="header" href="#改进">改进</a></h2>
+<p>可以利用 GNU C 扩展中typeof的语法来实现这个宏。</p>
+<pre><code class="language-c">#define MIN(x, y) ({            \
+    typeof(x) _min1 = (x);      \
+    typeof(y) _min2 = (y);      \
+    (void) (&amp;_min1 == &amp;_min2);  \
+    _min1 &lt; _min2 ? _min1 : _min2; })
+</code></pre>
+<h3 id="1表达式"><a class="header" href="#1表达式">1.({})表达式</a></h3>
+<p>C语言中，花括号{}表达式的语义可以理解成把多条语句组合成一条复合语句的指令，
+而小括号()表达式则是将表达式的值设成复合语句最后一条指令的值。</p>
+<p>花括号表达式还限定了<code>_min1</code>和<code>_min2</code>这两个变量的作用域，可以让这两个临时变量名，
+不会影响到外边的程序。</p>
+<h3 id="2typeof"><a class="header" href="#2typeof">2.typeof</a></h3>
+<p>GNU C 的一个扩展，提取括号中表达式的类型，并将其应用在typeof出现的地方。
+类似于C++中auto关键字的类型推导的作用。</p>
+<h3 id="3void-_min1--_min2"><a class="header" href="#3void-_min1--_min2">3.<code>(void) (&amp;_min1 == &amp;_min2)</code></a></h3>
+<p>对不同类型的指针进行比较操作，编译器会报warning。
+这一行是要在编译期做检查。
+因为这条语句对于程序没有影响，在编译时会被优化掉，不会影响到执行期的逻辑。</p>
 
                     </main>
 
