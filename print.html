@@ -161,6 +161,7 @@
 int * p = &amp;a;
 </code></pre>
 <h3 id="解引用指针"><a class="header" href="#解引用指针">解引用指针</a></h3>
+<p>使用指针变量来访问指针变量存储的地址指向的对象。</p>
 <pre><code class="language-c">*p = 20;
 </code></pre>
 <h2 id="阅读指针相关声明"><a class="header" href="#阅读指针相关声明">阅读指针相关声明</a></h2>
@@ -201,6 +202,24 @@ int * p = &amp;a;
       |           |
       |           float*
 </code></pre>
+<h2 id="null"><a class="header" href="#null">NULL</a></h2>
+<p>NULL值意味着指针不指向任何对象。
+一般定义如下</p>
+<pre><code class="language-c">#define NULL  ((void *)0)
+</code></pre>
+<h2 id="void-指针"><a class="header" href="#void-指针"><code>void *</code>指针</a></h2>
+<p><code>void *</code>是通用指针类型，它去掉了指针指向的对象的类型属性。
+可以用来存放任何数据类型的地址。</p>
+<ul>
+<li>任何指针都可以被赋值给<code>void *</code>指针，<code>void *</code>指针也可以被转换成其他类型的指针</li>
+<li><code>void *</code>类型指针指可以用作数据指针，不能用作函数指针</li>
+</ul>
+<p>不应该对<code>void *</code>指针进行整数加减运算，这样做没有意义，而且编译器也会报警告信息。</p>
+<h2 id="虚拟内存"><a class="header" href="#虚拟内存">虚拟内存</a></h2>
+<p>对于运行在操作系统上的应用程序来讲，指针中的地址一般不是实际的物理地址。</p>
+<p>应用程序使用的是经过映射的虚拟地址，虚拟地址不会改变，
+而实际的地址会被操作系统映射到不同的物理内存地址。
+一般来说，程序员也不需要关心实际的物理地址是什么。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="min宏的实现"><a class="header" href="#min宏的实现">min宏的实现</a></h1>
 <h2 id="通过函数实现最小值函数"><a class="header" href="#通过函数实现最小值函数">通过函数实现最小值函数</a></h2>
 <p>通过函数来实现最小值：</p>
