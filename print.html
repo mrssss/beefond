@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">C语言</a></li><li class="chapter-item expanded affix "><li class="part-title">指针</li><li class="chapter-item expanded "><a href="pointer/basic.html"><strong aria-hidden="true">1.</strong> 指针101</a></li><li class="chapter-item expanded "><a href="pointer/dynamic_mm.html"><strong aria-hidden="true">2.</strong> 动态内存管理</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">技巧</li><li class="chapter-item expanded "><a href="tips/min_macro.html"><strong aria-hidden="true">3.</strong> min宏的实现</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">C语言</a></li><li class="chapter-item expanded affix "><li class="part-title">指针</li><li class="chapter-item expanded "><a href="pointer/basic.html"><strong aria-hidden="true">1.</strong> 指针101</a></li><li class="chapter-item expanded "><a href="pointer/dynamic_mm.html"><strong aria-hidden="true">2.</strong> 动态内存管理</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">技巧</li><li class="chapter-item expanded "><a href="tips/min_macro.html"><strong aria-hidden="true">3.</strong> min宏的实现</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">操作系统导论</li><li class="chapter-item expanded "><a href="operation_system_3epcs/chap2/introduction.html"><strong aria-hidden="true">4.</strong> 操作系统介绍</a></li><li class="chapter-item expanded "><a href="operation_system_3epcs/chap4/process.html"><strong aria-hidden="true">5.</strong> 进程</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -146,6 +146,14 @@
 <h2 id="技巧"><a class="header" href="#技巧">技巧</a></h2>
 <ul>
 <li><a href="tips/min_macro.html">min宏的实现</a></li>
+</ul>
+<p>--</p>
+<h1 id="操作系统"><a class="header" href="#操作系统">操作系统</a></h1>
+<hr />
+<h2 id="操作系统导论"><a class="header" href="#操作系统导论">操作系统导论</a></h2>
+<ul>
+<li><a href="operation_system_3epcs/chap2/introduction.html">操作系统介绍</a></li>
+<li><a href="operation_system_3epcs/chap4/process.html">进程</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="指针101"><a class="header" href="#指针101">指针101</a></h1>
 <h2 id="声明指针"><a class="header" href="#声明指针">声明指针</a></h2>
@@ -222,6 +230,36 @@ int * p = &amp;a;
 而实际的地址会被操作系统映射到不同的物理内存地址。
 一般来说，程序员也不需要关心实际的物理地址是什么。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="动态内存管理"><a class="header" href="#动态内存管理">动态内存管理</a></h1>
+<h2 id="动态内存分配"><a class="header" href="#动态内存分配">动态内存分配</a></h2>
+<pre><code class="language-c">// 分配内存
+type * p = (type*) malloc(sizeof(type));
+
+// 使用内存
+...
+
+// 释放内存
+free(p);
+</code></pre>
+<p>内存被释放之后，就不应该再访问它了。</p>
+<h1 id="常见问题"><a class="header" href="#常见问题">常见问题</a></h1>
+<h2 id="内存泄漏"><a class="header" href="#内存泄漏">内存泄漏</a></h2>
+<p>对象被使用完之后，没有被释放。</p>
+<p>导致内存泄漏的原因：</p>
+<ul>
+<li>丢失内存地址</li>
+<li>应该调用free函数但是没有被调用</li>
+</ul>
+<p>如果从堆管理器中申请的内存，但是没有及时的释放。
+这会导致程序可以使用的内存变少，最终需要内存的时候，调用malloc会出错，
+导致程序终止。</p>
+<p>1.丢失地址</p>
+<pre><code class="language-c">int * pi = (int*)malloc(sizeof(int));
+*pi = 5;
+pi = (int*)malloc(sizeof(int));
+</code></pre>
+<p>第一次被分配的内存空间，在第二次分配内存之后就没有办法找到了。
+这时，第一次被分配的内存空间就没有办法正常的释放给堆管理器。</p>
+<p>2.隐式内存泄漏</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="min宏的实现"><a class="header" href="#min宏的实现">min宏的实现</a></h1>
 <h2 id="通过函数实现最小值函数"><a class="header" href="#通过函数实现最小值函数">通过函数实现最小值函数</a></h2>
 <p>通过函数来实现最小值：</p>
@@ -259,6 +297,326 @@ int * p = &amp;a;
 <p>对不同类型的指针进行比较操作，编译器会报warning。
 这一行是要在编译期做检查。
 因为这条语句对于程序没有影响，在编译时会被优化掉，不会影响到执行期的逻辑。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="操作系统介绍"><a class="header" href="#操作系统介绍">操作系统介绍</a></h1>
+<p><strong>操作系统做了什么？</strong></p>
+<ul>
+<li>资源的虚拟化
+<ul>
+<li>CPU</li>
+<li>内存</li>
+<li>磁盘</li>
+<li>其他设备</li>
+</ul>
+</li>
+<li>处理并发问题</li>
+<li>持久化存储文件</li>
+</ul>
+<h2 id="虚拟化cpu"><a class="header" href="#虚拟化cpu">虚拟化CPU</a></h2>
+<p>在硬件的帮助下，操作系统负责提供系统拥有非常多虚拟CPU的假象。</p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main(int argc, char * argv[])
+{
+    if (argc != 2)
+    {
+        fprintf(stderr, &quot;usage: cpu &lt;string&gt;\n&quot;);
+        exit(1);
+    }
+
+    char * str = argv[1];
+
+    while (1)
+    {
+        sleep(1);
+        printf(&quot;%s\n&quot;, str);
+    }
+
+    return 0;
+}
+</code></pre>
+<pre><code class="language-shell">./cpu A &amp;; ./cpu B &amp;; ./cpu C &amp;; ./cpu D &amp;;
+</code></pre>
+<h2 id="虚拟化内存"><a class="header" href="#虚拟化内存">虚拟化内存</a></h2>
+<p>操作系统为每个进程提供私有虚拟内存地址空间。
+操作系统以某种方式映射到机器的物理内存。
+一个进程不会影响到其他进程的地址空间。</p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;assert.h&gt;
+
+int main()
+{
+    int * p = (int*)malloc(sizeof(int));
+
+    assert(p != NULL);
+
+    printf(&quot;(%d) memory address of p:0x%p\n&quot;, getpid(), p);
+    return 0;
+}
+</code></pre>
+<pre><code class="language-shell">./mem &amp;; ./mem &amp;;
+</code></pre>
+<h2 id="并发"><a class="header" href="#并发">并发</a></h2>
+<p>进程看上去像是在同一时间内执行的。</p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;pthread.h&gt;
+
+volatile int counter = 0;
+int loops;
+
+void * worker(void * arg)
+{
+    for (int i=0; i &lt; loops; i++)
+    {
+        counter++;
+    }
+    return NULL;
+}
+
+int main(int argc, char * argv[])
+{
+    if (argc != 2)
+    {
+        fprintf(stderr, &quot;usage: threads &lt;value&gt;\n&quot;);
+        exit(1);
+    }
+
+    loops = atoi(argv[1]);
+    pthread_t p1, p2;
+    printf(&quot;Initial value: %d\n&quot;, counter);
+
+    pthread_create(&amp;p1, NULL, worker, NULL);
+    pthread_create(&amp;p2, NULL, worker, NULL);
+
+    pthread_join(p1, NULL);
+    pthread_join(p2, NULL);
+    printf(&quot;Final value: %d\n&quot;, counter);
+
+    return 0;
+}
+</code></pre>
+<pre><code class="language-shell">./threads 20000
+</code></pre>
+<h2 id="持久性"><a class="header" href="#持久性">持久性</a></h2>
+<p>持久存储数据</p>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;assert.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/types.h&gt;
+
+int main()
+{
+    int fd = open(&quot;/tmp/file&quot;, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
+
+    assert(fd &gt; -1);
+
+    int rc = write(fd, &quot;hello world\n&quot;, 13);
+    assert(rc == 13);
+    close(fd);
+
+    return 0;
+}
+</code></pre>
+<pre><code class="language-shell">./file_write
+</code></pre>
+<h1 id="操作系统设计目标"><a class="header" href="#操作系统设计目标">操作系统设计目标</a></h1>
+<ol>
+<li>建立<strong>抽象</strong>，让操作系统方便和易于使用</li>
+<li>最小化操作系统的开销，实现<strong>高性能</strong></li>
+<li>在应用程序之间以及操作系统和应用程序之间的<strong>提供保护</strong></li>
+<li>提供高度的<strong>可靠性</strong></li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="进程的定义"><a class="header" href="#进程的定义">进程的定义</a></h1>
+<hr />
+<p><strong>非正式定义</strong></p>
+<p>进程是运行中的程序</p>
+<p><strong>怎么表示进程</strong></p>
+<p>进程的机器状态可以用来表示进程。
+进程的机器状态包括：</p>
+<ul>
+<li>内存
+<ul>
+<li>指令</li>
+<li>可读内存</li>
+<li>可写内存</li>
+</ul>
+</li>
+<li>寄存器
+<ul>
+<li>通用寄存器，保存进行执行相关的数据</li>
+<li>特殊寄存器
+<ul>
+<li>程序计数器（PC/IP），要执行的下一条指令</li>
+<li>栈指针（SP）函数调用栈，局部变量相关数据</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>进程访问的设备，即I/O相关信息（当前进程打开的文件列表）</li>
+</ul>
+<h1 id="进程相关api"><a class="header" href="#进程相关api">进程相关API</a></h1>
+<p><strong>操作系统提供了哪些对进程的操作？</strong></p>
+<ul>
+<li>创建</li>
+<li>销毁</li>
+<li>等待进程停滞</li>
+<li>其他操作（暂停、恢复等）</li>
+<li>获取进程状态</li>
+</ul>
+<h2 id="进程创建"><a class="header" href="#进程创建">进程创建</a></h2>
+<p><strong>如何将程序转化为进程</strong></p>
+<ol>
+<li>从磁盘加载到内存
+<ol>
+<li>加载对象
+<ol>
+<li>代码</li>
+<li>静态数据</li>
+</ol>
+</li>
+<li>加载方式
+<ol>
+<li>尽早加载（在进程执行之前全部加载）</li>
+<li>惰性加载（用到的时候再加载）</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>准备运行时栈</li>
+<li>完成其他初始化任务，例如I/O设备初始化、文件描述符</li>
+<li>启动程序，转移CPU控制权</li>
+</ol>
+<h2 id="进程状态"><a class="header" href="#进程状态">进程状态</a></h2>
+<pre><code class="language-plantuml">@startuml
+state new as &quot;创建（new）&quot;
+state running as &quot;运行（running）&quot;
+state ready as &quot;就绪（ready）&quot;
+state waiting as &quot;阻塞（blocked）&quot;
+state terminated as &quot;终止（terminated）&quot;
+
+new --&gt; ready: 创建(admitted)
+ready --&gt; running: 调度(scheduler dispatch)
+running --&gt; ready: 中断，取消调度(interrupt)
+running --&gt; waiting: I/O或事件发起(I/O or event wait)
+waiting --&gt; ready: I/O或事件完成(I/O or event completion)
+running --&gt; terminated: 退出或被终止(exit)
+@enduml
+</code></pre>
+<ul>
+<li>running: 进程正在处理器上运行</li>
+<li>ready: 进程已经准备好，但是由于某种原因，操作系统选择不在此时运行</li>
+<li>blocked: 进程执行了某个操作，直到某个时间发生才会准备运行&quot;&quot;</li>
+</ul>
+<h1 id="xv6中进程相关数据结构"><a class="header" href="#xv6中进程相关数据结构">xv6中进程相关数据结构</a></h1>
+<h2 id="寄存器上下文"><a class="header" href="#寄存器上下文">寄存器上下文</a></h2>
+<p>用于保存内核上下文切换时的寄存器数据。</p>
+<pre><code class="language-c">// proc.h
+struct context {
+  uint edi;
+  uint esi;
+  uint ebx;
+  uint ebp;
+  uint eip;
+};
+</code></pre>
+<p><strong>类型</strong></p>
+<p>这里用<code>uint32_t</code>会不会更加好一点，
+如果64位的机器应该是<code>uint64_t</code>。</p>
+<p><strong>缺少一些寄存器</strong></p>
+<p>这里并不需要保存所有的段寄存器（例如：%cs），因为这些寄存器对于内核的
+上下文切换来说是常量。</p>
+<p>也不需要保存%eax、%ecx、%edx这些寄存器；因为按照x86的惯例， 这些寄
+存器会被调用者保存在函数调用栈里。</p>
+<p><strong>存储位置</strong></p>
+<p>上下文的信息存储在它们所描述的栈的栈底位置；栈指针会指向上下文结构体。
+上下文的内存布局符合<code>swtch.S</code>中在“切换栈”那段注释中对于栈的内存布局
+的描述。</p>
+<p><strong>eip</strong></p>
+<p>切换内存地址的操作不需要显式地保存eip寄存器，但是这个寄存器是在栈里被
+保存的；allocproc()这个函数会操作它。</p>
+<h2 id="进程状态枚举"><a class="header" href="#进程状态枚举">进程状态枚举</a></h2>
+<p>进程可能处于的状态。</p>
+<pre><code class="language-c">// proc.h
+enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+</code></pre>
+<ul>
+<li>
+<ol>
+<li>UNUSED： 进程创建之前的状态。</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>EMBRYO：胚胎状态，初始状态，进程在创建时处于的状态。</li>
+</ol>
+</li>
+<li>
+<ol start="3">
+<li>SLEEPING：睡眠状态，等待某个事件发生以开始执行。</li>
+</ol>
+</li>
+<li>
+<ol start="4">
+<li>RUNNABLE：已经准备好执行。</li>
+</ol>
+</li>
+<li>
+<ol start="5">
+<li>RUNNING：正在处理器中执行。</li>
+</ol>
+</li>
+<li>
+<ol start="6">
+<li>ZOMBIE：僵尸状态，已退出但未清理的最终状态。</li>
+</ol>
+</li>
+</ul>
+<p><strong>xv6进程状态转换图</strong></p>
+<pre><code class="language-plantuml">@startuml
+state UNUSED
+state EMBRYO
+state RUNNING
+state RUNNABLE
+state SLEEPING
+state ZOMBIE
+
+UNUSED --&gt; EMBRYO: allocproc()
+EMBRYO --&gt; RUNNABLE: fork()/userinit()
+RUNNABLE --&gt; RUNNING: scheduler()
+RUNNING --&gt; RUNNABLE: interrupt
+RUNNING --&gt; SLEEPING: syscall
+SLEEPING --&gt; RUNNABLE: Event finish
+RUNNING --&gt; ZOMBIE: exit/killed
+@enduml
+</code></pre>
+<h2 id="进程控制块"><a class="header" href="#进程控制块">进程控制块</a></h2>
+<p>用于存储关于进程的信息。</p>
+<pre><code class="language-c">struct proc {
+  uint sz;                     // 占用内存大小 (bytes)
+  pde_t* pgdir;                // 指向页表的指针
+  char *kstack;                // 该进程内核栈的底地址
+  enum procstate state;        // 进程状态
+  int pid;                     // 进程ID
+  struct proc *parent;         // 父进程控制块
+  struct trapframe *tf;        // 当前系统调用的trap frame
+  struct context *context;     // 进程上下文
+  void *chan;                  // 如果非零，指向睡眠队列
+  int killed;                  // 如果非零，则被杀掉
+  struct file *ofile[NOFILE];  // 打开的文件信息
+  struct inode *cwd;           // 工作目录
+  char name[16];               // 进程名（调试用）
+};
+</code></pre>
+<p><strong>trap frame</strong></p>
+<p>用来储存用户空间的寄存器。
+调用trap陷入内核的时候（执行系统调用），
+CPU从用户空间切换到了内核空间。
+trap frame这段内存用来保存用户空间的寄存器数据。</p>
 
                     </main>
 
