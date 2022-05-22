@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">C语言</a></li><li class="chapter-item expanded affix "><li class="part-title">指针</li><li class="chapter-item expanded "><a href="pointer/basic.html"><strong aria-hidden="true">1.</strong> 指针101</a></li><li class="chapter-item expanded "><a href="pointer/dynamic_mm.html"><strong aria-hidden="true">2.</strong> 动态内存管理</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">技巧</li><li class="chapter-item expanded "><a href="tips/min_macro.html"><strong aria-hidden="true">3.</strong> min宏的实现</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">操作系统导论</li><li class="chapter-item expanded "><a href="operation_system_3epcs/chap2/introduction.html"><strong aria-hidden="true">4.</strong> 操作系统介绍</a></li><li class="chapter-item expanded "><a href="operation_system_3epcs/chap4/process.html"><strong aria-hidden="true">5.</strong> 进程</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">C语言</a></li><li class="chapter-item expanded affix "><li class="part-title">指针</li><li class="chapter-item expanded "><a href="pointer/basic.html"><strong aria-hidden="true">1.</strong> 指针101</a></li><li class="chapter-item expanded "><a href="pointer/dynamic_mm.html"><strong aria-hidden="true">2.</strong> 动态内存管理</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">技巧</li><li class="chapter-item expanded "><a href="tips/min_macro.html"><strong aria-hidden="true">3.</strong> min宏的实现</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">操作系统导论</li><li class="chapter-item expanded "><a href="operation_system_3epcs/chap2/introduction.html"><strong aria-hidden="true">4.</strong> 操作系统介绍</a></li><li class="chapter-item expanded "><a href="operation_system_3epcs/chap4/process.html"><strong aria-hidden="true">5.</strong> 进程</a></li><li class="chapter-item expanded "><a href="operation_system_3epcs/chap5/proc_api.html"><strong aria-hidden="true">6.</strong> 进程API</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -154,6 +154,7 @@
 <ul>
 <li><a href="operation_system_3epcs/chap2/introduction.html">操作系统介绍</a></li>
 <li><a href="operation_system_3epcs/chap4/process.html">进程</a></li>
+<li><a href="operation_system_3epcs/chap5/proc_api.html">进程API</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="指针101"><a class="header" href="#指针101">指针101</a></h1>
 <h2 id="声明指针"><a class="header" href="#声明指针">声明指针</a></h2>
@@ -459,6 +460,15 @@ int main()
 </li>
 <li>进程访问的设备，即I/O相关信息（当前进程打开的文件列表）</li>
 </ul>
+<h2 id="概念总结"><a class="header" href="#概念总结">概念总结</a></h2>
+<p><strong>程序</strong>
+程序是指编译过的、可执行的二进制代码；保存在磁盘这种存储介质中，不运行。</p>
+<p><strong>进程</strong>
+进程指正在运行的程序。</p>
+<p><strong>进程ID</strong>
+进程的标识符，pid。操作系统保证在任意时刻pid都是唯一的。</p>
+<p><strong>父进程</strong>
+创建进程B的那个进程A成为B进程的父进程。</p>
 <h1 id="进程相关api"><a class="header" href="#进程相关api">进程相关API</a></h1>
 <p><strong>操作系统提供了哪些对进程的操作？</strong></p>
 <ul>
@@ -468,6 +478,7 @@ int main()
 <li>其他操作（暂停、恢复等）</li>
 <li>获取进程状态</li>
 </ul>
+<p><a href="operation_system_3epcs/chap4/../chap5/proc_api.html">进程API</a></p>
 <h2 id="进程创建"><a class="header" href="#进程创建">进程创建</a></h2>
 <p><strong>如何将程序转化为进程</strong></p>
 <ol>
@@ -492,21 +503,7 @@ int main()
 <li>启动程序，转移CPU控制权</li>
 </ol>
 <h2 id="进程状态"><a class="header" href="#进程状态">进程状态</a></h2>
-<pre><code class="language-plantuml">@startuml
-state new as &quot;创建（new）&quot;
-state running as &quot;运行（running）&quot;
-state ready as &quot;就绪（ready）&quot;
-state waiting as &quot;阻塞（blocked）&quot;
-state terminated as &quot;终止（terminated）&quot;
-
-new --&gt; ready: 创建(admitted)
-ready --&gt; running: 调度(scheduler dispatch)
-running --&gt; ready: 中断，取消调度(interrupt)
-running --&gt; waiting: I/O或事件发起(I/O or event wait)
-waiting --&gt; ready: I/O或事件完成(I/O or event completion)
-running --&gt; terminated: 退出或被终止(exit)
-@enduml
-</code></pre>
+<p><img src="operation_system_3epcs/chap4/./proc_state.svg" alt="proc_state" /></p>
 <ul>
 <li>running: 进程正在处理器上运行</li>
 <li>ready: 进程已经准备好，但是由于某种原因，操作系统选择不在此时运行</li>
@@ -542,7 +539,15 @@ struct context {
 <h2 id="进程状态枚举"><a class="header" href="#进程状态枚举">进程状态枚举</a></h2>
 <p>进程可能处于的状态。</p>
 <pre><code class="language-c">// proc.h
-enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+enum procstate
+{
+    UNUSED,
+    EMBRYO,
+    SLEEPING,
+    RUNNABLE,
+    RUNNING,
+    ZOMBIE
+};
 </code></pre>
 <ul>
 <li>
@@ -576,24 +581,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 </ol>
 </li>
 </ul>
-<p><strong>xv6进程状态转换图</strong></p>
-<pre><code class="language-plantuml">@startuml
-state UNUSED
-state EMBRYO
-state RUNNING
-state RUNNABLE
-state SLEEPING
-state ZOMBIE
-
-UNUSED --&gt; EMBRYO: allocproc()
-EMBRYO --&gt; RUNNABLE: fork()/userinit()
-RUNNABLE --&gt; RUNNING: scheduler()
-RUNNING --&gt; RUNNABLE: interrupt
-RUNNING --&gt; SLEEPING: syscall
-SLEEPING --&gt; RUNNABLE: Event finish
-RUNNING --&gt; ZOMBIE: exit/killed
-@enduml
-</code></pre>
+<p><strong>xv6进程状态转换图</strong>
+<img src="operation_system_3epcs/chap4/./xv6_proc_state.svg" alt="xv6_proc_state" /></p>
 <h2 id="进程控制块"><a class="header" href="#进程控制块">进程控制块</a></h2>
 <p>用于存储关于进程的信息。</p>
 <pre><code class="language-c">struct proc {
@@ -617,6 +606,74 @@ RUNNING --&gt; ZOMBIE: exit/killed
 调用trap陷入内核的时候（执行系统调用），
 CPU从用户空间切换到了内核空间。
 trap frame这段内存用来保存用户空间的寄存器数据。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="进程api"><a class="header" href="#进程api">进程API</a></h1>
+<h2 id="获取pid和父进程的pidppid"><a class="header" href="#获取pid和父进程的pidppid">获取pid和父进程的pid（ppid）</a></h2>
+<p><strong>获取进程ID</strong></p>
+<pre><code class="language-c">#include &lt;sys/types.h&gt;
+#include &lt;unistd.h&gt;
+
+pid_t getpid(void);
+</code></pre>
+<p><strong>获取父进程ID</strong></p>
+<pre><code class="language-c">#include &lt;sys/types.h&gt;
+#include &lt;unistd.h&gt;
+
+pid_t getppid(void);
+</code></pre>
+<h2 id="fork系统调用"><a class="header" href="#fork系统调用">fork系统调用</a></h2>
+<p>通过fork系统调用，可以创建一个和当前进程一样的进程。</p>
+<pre><code class="language-c">#include &lt;sys/types.h&gt;
+#include &lt;unistd.h&gt;
+
+pid_t fork(void);
+</code></pre>
+<p>fork调用成功，会创建一个新的进程。
+调用者在创建了新进程之后依然会正常执行。</p>
+<p>父进程和子进程在fork调用完成之后会执行同样的程序。
+它们的不同在于在父进程中，fork会返回子进程的pid。
+而子进程中的fork会返回0.</p>
+<p>父进程和子进程的区别：</p>
+<ul>
+<li>pid不同</li>
+<li>子进程的ppid是父进程的pid</li>
+<li>子进程的资源统计信息被清零</li>
+<li>父进程的信号不会被子进程继承</li>
+<li>父进程的文件锁不会被子进程继承</li>
+</ul>
+<p>出错返回-1，并设置errno的值：</p>
+<ul>
+<li>EAGAIN：内核申请资源失败</li>
+<li>ENOMEM：内核内存不足</li>
+</ul>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main(int argc, char * argv[])
+{
+    printf(&quot;hello world (pid: %d)\n&quot;, (int)getpid());
+
+    int rc = fork();
+
+    if (rc &lt; 0)
+    {
+        fprintf(stderr, &quot;fork failed\n&quot;);
+        exit(1);
+    }
+    else if (rc == 0)
+    {
+        printf(&quot;hello, I'm child of %d (pid: %d)\n&quot;, 
+            (int)getppid(), (int)getpid());
+    }
+    else
+    {
+        printf(&quot;hello, I'm parent of %d (pid: %d)\n&quot;,
+            rc, (int)getpid());
+    }
+
+    return 0;
+}
+</code></pre>
 
                     </main>
 

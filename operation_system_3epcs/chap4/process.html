@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../index.html">C语言</a></li><li class="chapter-item expanded affix "><li class="part-title">指针</li><li class="chapter-item expanded "><a href="../../pointer/basic.html"><strong aria-hidden="true">1.</strong> 指针101</a></li><li class="chapter-item expanded "><a href="../../pointer/dynamic_mm.html"><strong aria-hidden="true">2.</strong> 动态内存管理</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">技巧</li><li class="chapter-item expanded "><a href="../../tips/min_macro.html"><strong aria-hidden="true">3.</strong> min宏的实现</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">操作系统导论</li><li class="chapter-item expanded "><a href="../../operation_system_3epcs/chap2/introduction.html"><strong aria-hidden="true">4.</strong> 操作系统介绍</a></li><li class="chapter-item expanded "><a href="../../operation_system_3epcs/chap4/process.html" class="active"><strong aria-hidden="true">5.</strong> 进程</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../index.html">C语言</a></li><li class="chapter-item expanded affix "><li class="part-title">指针</li><li class="chapter-item expanded "><a href="../../pointer/basic.html"><strong aria-hidden="true">1.</strong> 指针101</a></li><li class="chapter-item expanded "><a href="../../pointer/dynamic_mm.html"><strong aria-hidden="true">2.</strong> 动态内存管理</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">技巧</li><li class="chapter-item expanded "><a href="../../tips/min_macro.html"><strong aria-hidden="true">3.</strong> min宏的实现</a></li><li class="spacer"></li><li class="chapter-item expanded affix "><li class="part-title">操作系统导论</li><li class="chapter-item expanded "><a href="../../operation_system_3epcs/chap2/introduction.html"><strong aria-hidden="true">4.</strong> 操作系统介绍</a></li><li class="chapter-item expanded "><a href="../../operation_system_3epcs/chap4/process.html" class="active"><strong aria-hidden="true">5.</strong> 进程</a></li><li class="chapter-item expanded "><a href="../../operation_system_3epcs/chap5/proc_api.html"><strong aria-hidden="true">6.</strong> 进程API</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -162,6 +162,15 @@
 </li>
 <li>进程访问的设备，即I/O相关信息（当前进程打开的文件列表）</li>
 </ul>
+<h2 id="概念总结"><a class="header" href="#概念总结">概念总结</a></h2>
+<p><strong>程序</strong>
+程序是指编译过的、可执行的二进制代码；保存在磁盘这种存储介质中，不运行。</p>
+<p><strong>进程</strong>
+进程指正在运行的程序。</p>
+<p><strong>进程ID</strong>
+进程的标识符，pid。操作系统保证在任意时刻pid都是唯一的。</p>
+<p><strong>父进程</strong>
+创建进程B的那个进程A成为B进程的父进程。</p>
 <h1 id="进程相关api"><a class="header" href="#进程相关api">进程相关API</a></h1>
 <p><strong>操作系统提供了哪些对进程的操作？</strong></p>
 <ul>
@@ -171,6 +180,7 @@
 <li>其他操作（暂停、恢复等）</li>
 <li>获取进程状态</li>
 </ul>
+<p><a href="../chap5/proc_api.html">进程API</a></p>
 <h2 id="进程创建"><a class="header" href="#进程创建">进程创建</a></h2>
 <p><strong>如何将程序转化为进程</strong></p>
 <ol>
@@ -195,21 +205,7 @@
 <li>启动程序，转移CPU控制权</li>
 </ol>
 <h2 id="进程状态"><a class="header" href="#进程状态">进程状态</a></h2>
-<pre><code class="language-plantuml">@startuml
-state new as &quot;创建（new）&quot;
-state running as &quot;运行（running）&quot;
-state ready as &quot;就绪（ready）&quot;
-state waiting as &quot;阻塞（blocked）&quot;
-state terminated as &quot;终止（terminated）&quot;
-
-new --&gt; ready: 创建(admitted)
-ready --&gt; running: 调度(scheduler dispatch)
-running --&gt; ready: 中断，取消调度(interrupt)
-running --&gt; waiting: I/O或事件发起(I/O or event wait)
-waiting --&gt; ready: I/O或事件完成(I/O or event completion)
-running --&gt; terminated: 退出或被终止(exit)
-@enduml
-</code></pre>
+<p><img src="./proc_state.svg" alt="proc_state" /></p>
 <ul>
 <li>running: 进程正在处理器上运行</li>
 <li>ready: 进程已经准备好，但是由于某种原因，操作系统选择不在此时运行</li>
@@ -245,7 +241,15 @@ struct context {
 <h2 id="进程状态枚举"><a class="header" href="#进程状态枚举">进程状态枚举</a></h2>
 <p>进程可能处于的状态。</p>
 <pre><code class="language-c">// proc.h
-enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+enum procstate
+{
+    UNUSED,
+    EMBRYO,
+    SLEEPING,
+    RUNNABLE,
+    RUNNING,
+    ZOMBIE
+};
 </code></pre>
 <ul>
 <li>
@@ -279,24 +283,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 </ol>
 </li>
 </ul>
-<p><strong>xv6进程状态转换图</strong></p>
-<pre><code class="language-plantuml">@startuml
-state UNUSED
-state EMBRYO
-state RUNNING
-state RUNNABLE
-state SLEEPING
-state ZOMBIE
-
-UNUSED --&gt; EMBRYO: allocproc()
-EMBRYO --&gt; RUNNABLE: fork()/userinit()
-RUNNABLE --&gt; RUNNING: scheduler()
-RUNNING --&gt; RUNNABLE: interrupt
-RUNNING --&gt; SLEEPING: syscall
-SLEEPING --&gt; RUNNABLE: Event finish
-RUNNING --&gt; ZOMBIE: exit/killed
-@enduml
-</code></pre>
+<p><strong>xv6进程状态转换图</strong>
+<img src="./xv6_proc_state.svg" alt="xv6_proc_state" /></p>
 <h2 id="进程控制块"><a class="header" href="#进程控制块">进程控制块</a></h2>
 <p>用于存储关于进程的信息。</p>
 <pre><code class="language-c">struct proc {
@@ -328,6 +316,9 @@ trap frame这段内存用来保存用户空间的寄存器数据。</p>
                             <a rel="prev" href="../../operation_system_3epcs/chap2/introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
+                            <a rel="next" href="../../operation_system_3epcs/chap5/proc_api.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         <div style="clear: both"></div>
                     </nav>
                 </div>
@@ -336,6 +327,9 @@ trap frame这段内存用来保存用户空间的寄存器数据。</p>
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../../operation_system_3epcs/chap2/introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../../operation_system_3epcs/chap5/proc_api.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
