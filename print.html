@@ -688,8 +688,8 @@ pid_t wait(int * status);
 <li>ECHILD：调用进程没有任何子进程</li>
 <li>EINTR：在等待子进程结束时收到信号，调用提前返回</li>
 </ul>
-<p><strong>status</strong>
-返回子进程的附加信息。
+<p><strong>status</strong></p>
+<p>返回子进程的附加信息。
 这些信息用比特位来表示。可以用下面的这些宏来解释：</p>
 <pre><code class="language-c">#include &lt;sys/wait.h&gt;
 
