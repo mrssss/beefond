@@ -775,6 +775,103 @@ int main()
 }
 </code></pre>
 <h2 id="exec系统调用"><a class="header" href="#exec系统调用">exec系统调用</a></h2>
+<p>exec系统调用负责将二进制程序加载到内存中，替换地址空间原油的内容，
+并开始执行。</p>
+<p>exec系统调用由一系列的exec函数构成。</p>
+<pre><code class="language-c">#include &lt;unistd.h&gt;
+
+int execl(const char * path, const char * arg, ...);
+int execlp(const char * file, const char * arg, ...);
+int execle(const char * path, const char * arg, ..., char * const envp[]);
+int execv(const char * path, char * const argv[]);
+int execvp(const char * file, char * const argv[]);
+int execve(const char * file, char * const argv[], char * const envp[]);
+</code></pre>
+<p>execl把path所指向的文件加载到内存中，替换当前进程的镜像。
+arg是传给main函数的第一个参数，就是程序名称。</p>
+<p>path是指定要加载那个程序，arg是指定程序名称。加载的程序可以是同一个，
+而程序名可以不同。有些程序可以根据这个参数来确定具体的行为。</p>
+<p><strong>exec函数族</strong></p>
+<ul>
+<li><code>l</code> : 以列表方式提供参数</li>
+<li><code>v</code> : 以数组方式提供参数</li>
+<li><code>p</code> : 在绝对路径path下查找可执行文件，可以只指定文件名</li>
+<li><code>e</code> : 会为新进程提供新的环境变量</li>
+</ul>
+<p>execl调用会改变：</p>
+<ul>
+<li>地址空间</li>
+<li>进程映像</li>
+<li>挂起的信号会丢失</li>
+<li>信号处理函数丢失</li>
+<li>丢弃所有内存锁</li>
+<li>线程的属性还原成默认值</li>
+<li>重置和进程相关的统计信息</li>
+<li>清空和进程内存地址空间相关的所有数据</li>
+<li>清空所有只存在于用户空间的数据</li>
+</ul>
+<p>执行成功时，会跳转到新的程序入口。
+执行失败时，会返回-1，并设置errno：</p>
+<ul>
+<li>E2BIG     : 参数列表（arg）或者环境变量（envp）的长度过长 </li>
+<li>EACCESS   : 
+<ul>
+<li>没有在path所指定路径的查找权限</li>
+<li>path所指向的文件不是一个普通文件</li>
+<li>目标文件不可执行</li>
+<li>path或文件所位于的文件系统以不可执行的方式挂载</li>
+</ul>
+</li>
+<li>EFAULT    : 给定指针非法</li>
+<li>EIO       : 底层I/O错误</li>
+<li>EISDIR    : 路径path的最后一部分或者路径解释器是个目录</li>
+<li>ELOOP     : 系统在解析path时遇到太多的符号连接</li>
+<li>EMFILE    : 调用进程打开的文件数达到进程上限</li>
+<li>ENFILE    : 打开文件达到系统上限</li>
+<li>ENOENT    : 目标路径或文件不存在，或者所需要的共享库不存在</li>
+<li>ENOEXEC   : 目标文件不是一个有效的二进制可执行文件或者是其他体系结构的可执行格式</li>
+<li>ENOMEM    : 内核内存不足，无法执行新的程序</li>
+<li>ENOTDIR   : path中除最后名称外的其中某个部分不是目录</li>
+<li>EPERM     : path或文件所在的文件系统以没有sudo权限的用户挂载，而且用户不是root用户，path或文件的suid或sgid位被设置（只允许有sudo权限执行）</li>
+<li>ETXTBSY   : 目标目录或文件被另一个进程以可写方式打开</li>
+</ul>
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;string.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;sys/wait.h&gt;
+
+int main(int argc, char * argv[])
+{
+    int rc = fork();
+    if (rc &lt; 0)
+    {
+        fprintf(stderr, &quot;fork failed.\n&quot;);
+        exit(1);
+    }
+    else if (rc == 0)
+    {
+        close(STDOUT_FILENO);   
+        // 关掉文件描述符STDOUT_FILENO，
+        // 下一个打开的文件会从小的文件描述符开始找
+        // 给open的文件的描述符就会是STDOUT_FILENO。相当于将STDOUT重定向到文件中。
+        open(&quot;./wc.ouput&quot;, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+
+        char * myargs[3];
+        myargs[0] = strdup(&quot;wc&quot;);
+        myargs[1] = strdup(&quot;wc.c&quot;);
+        myargs[2] = NULL;
+        execvp(myargs[0], myargs);
+    }
+    else
+    {
+        wait(NULL);
+    }
+
+    return 0;
+}
+</code></pre>
 
                     </main>
 
