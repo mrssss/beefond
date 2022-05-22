@@ -163,14 +163,14 @@
 <li>进程访问的设备，即I/O相关信息（当前进程打开的文件列表）</li>
 </ul>
 <h2 id="概念总结"><a class="header" href="#概念总结">概念总结</a></h2>
-<p><strong>程序</strong>
-程序是指编译过的、可执行的二进制代码；保存在磁盘这种存储介质中，不运行。</p>
-<p><strong>进程</strong>
-进程指正在运行的程序。</p>
-<p><strong>进程ID</strong>
-进程的标识符，pid。操作系统保证在任意时刻pid都是唯一的。</p>
-<p><strong>父进程</strong>
-创建进程B的那个进程A成为B进程的父进程。</p>
+<p><strong>程序</strong></p>
+<p>程序是指编译过的、可执行的二进制代码；保存在磁盘这种存储介质中，不运行。</p>
+<p><strong>进程</strong></p>
+<p>进程指正在运行的程序。</p>
+<p><strong>进程ID</strong></p>
+<p>进程的标识符，pid。操作系统保证在任意时刻pid都是唯一的。</p>
+<p><strong>父进程</strong></p>
+<p>创建进程B的那个进程A成为B进程的父进程。</p>
 <h1 id="进程相关api"><a class="header" href="#进程相关api">进程相关API</a></h1>
 <p><strong>操作系统提供了哪些对进程的操作？</strong></p>
 <ul>
@@ -283,8 +283,8 @@ enum procstate
 </ol>
 </li>
 </ul>
-<p><strong>xv6进程状态转换图</strong>
-<img src="./xv6_proc_state.svg" alt="xv6_proc_state" /></p>
+<p><strong>xv6进程状态转换图</strong></p>
+<p><img src="./xv6_proc_state.svg" alt="xv6_proc_state" /></p>
 <h2 id="进程控制块"><a class="header" href="#进程控制块">进程控制块</a></h2>
 <p>用于存储关于进程的信息。</p>
 <pre><code class="language-c">struct proc {
