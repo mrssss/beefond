@@ -152,43 +152,44 @@
 <div style="break-before: page; page-break-before: always;"></div><h1 id="static关键字的四种用法"><a class="header" href="#static关键字的四种用法">static关键字的四种用法</a></h1>
 <h2 id="1修饰函数内静态变量"><a class="header" href="#1修饰函数内静态变量">1.修饰函数内静态变量</a></h2>
 <p>在函数内部使用static修饰变量时，会延长这个变量的生命周期。</p>
-<p>int method()
+<pre><code class="language-c">int method()
 {
-static int i = 10;
-return i++;
-}</p>
-<p>编译文件<code>g++ -S method.cpp -O0</code>，得到没有优化过的汇编代码</p>
-<pre><code>.file	&quot;method.cpp&quot;
-.text
-.data
-.align 4
-.type	_ZZ6methodvE1i, @object
-.size	_ZZ6methodvE1i, 4
+    static int i = 10;
+    return i++;
+}
 </code></pre>
-<p>_ZZ6methodvE1i:
-.long	10
-.text
-.globl	_Z6methodv
-.type	_Z6methodv, @function
+<p>编译文件<code>g++ -S method.cpp -O0</code>，得到没有优化过的汇编代码</p>
+<pre><code class="language-c">	.file	&quot;method.cpp&quot;
+	.text
+	.data
+	.align 4
+	.type	_ZZ6methodvE1i, @object
+	.size	_ZZ6methodvE1i, 4
+_ZZ6methodvE1i:
+	.long	10
+	.text
+	.globl	_Z6methodv
+	.type	_Z6methodv, @function
 _Z6methodv:
 .LFB0:
-.cfi_startproc
-pushq	%rbp
-.cfi_def_cfa_offset 16
-.cfi_offset 6, -16
-movq	%rsp, %rbp
-.cfi_def_cfa_register 6
-movl	_ZZ6methodvE1i(%rip), %eax
-leal	1(%rax), %edx
-movl	%edx, _ZZ6methodvE1i(%rip)
-popq	%rbp
-.cfi_def_cfa 7, 8
-ret
-.cfi_endproc
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	_ZZ6methodvE1i(%rip), %eax
+	leal	1(%rax), %edx
+	movl	%edx, _ZZ6methodvE1i(%rip)
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
 .LFE0:
-.size	_Z6methodv, .-_Z6methodv
-.ident	&quot;GCC: (GNU) 11.2.0&quot;
-.section	.note.GNU-stack,&quot;&quot;,@progbits</p>
+	.size	_Z6methodv, .-_Z6methodv
+	.ident	&quot;GCC: (GNU) 11.2.0&quot;
+	.section	.note.GNU-stack,&quot;&quot;,@progbits
+</code></pre>
 <p>可以看到在全局的<code>.data</code>段中有一个label <code>_ZZ6methodvE1i</code>。</p>
 <p>我们知道，<code>.data</code>段是程序的全局内存空间，而不是在函数的调用栈中。</p>
 <p>通过这个实验我们可以看到，在函数中对变量使用static关键字，可以将
@@ -204,16 +205,22 @@ ret
 <p>在函数体之外（文件级别）使用static修饰标识符（变量或函数）会让这个
 标识符仅在本文件中可见，或者说这些符号具有内部链接性（internal 
 linkage）。</p>
-<p>static void func_static(){}
-void func(){}</p>
+<pre><code class="language-c">static void func_static(){}
+void func(){}
+</code></pre>
 <p>这一次，把源文件编译成二进制文件，通过<code>objdump -t file.o</code>指令来
 查看符号属性。</p>
-<p>file.o:     file format elf64-x86-64</p>
-<p>SYMBOL TABLE:
-0000000000000000 l    df <em>ABS</em>	0000000000000000 file.cpp
+<pre><code class="language-c">
+file.o:     file format elf64-x86-64
+
+SYMBOL TABLE:
+0000000000000000 l    df *ABS*	0000000000000000 file.cpp
 0000000000000000 l    d  .text	0000000000000000 .text
 0000000000000000 l     F .text	0000000000000007 _ZL11func_staticv
-0000000000000007 g     F .text	0000000000000007 _Z4funcv</p>
+0000000000000007 g     F .text	0000000000000007 _Z4funcv
+
+
+</code></pre>
 <p>可以看到<code>_ZL11func_staticv</code>符号的属性是<code>l</code> local，而<code>_Z4funcv</code>
 的属性是<code>g</code> global。
 链接器在链接的时候只会在本编译单元中对这个符号进行地址重排，其他编译
@@ -227,192 +234,218 @@ void func(){}</p>
 <p>对于普通成员方法来讲，在调用的时候，第一个参数会传对象的地址。而静态
 方法不和对象绑定，不需要传对象地址。同样，它也就没有办法访问到普通成
 员变量和普通成员方法。</p>
-<p>class A
+<pre><code class="language-c">class A
 {
 public:
-static int i;
-int j;</p>
-<pre><code>static int func_static() { return i; }
+    static int i;
+    int j;
 
-int func() { return j; }
+    static int func_static() { return i; }
+
+    int func() { return j; }
+};
+
+int A::i = 20;
+
+int bar()
+{
+    return A::func_static();
+}
+
+int foo()
+{
+    A a;
+    a.j = 10;
+    return a.func();
+}
 </code></pre>
-<p>};</p>
-<p>int A::i = 20;</p>
-<p>int bar()
-{
-return A::func_static();
-}</p>
-<p>int foo()
-{
-A a;
-a.j = 10;
-return a.func();
-}</p>
-<p>cls.o:     file format elf64-x86-64</p>
-<p>Disassembly of section .group:</p>
-<p>0000000000000000 &lt;.group&gt;:
-0:	01 00                	add    %eax,(%rax)
-2:	00 00                	add    %al,(%rax)
-4:	07                   	(bad)<br />
-5:	00 00                	add    %al,(%rax)
-7:	00 08                	add    %cl,(%rax)
-9:	00 00                	add    %al,(%rax)
-...</p>
-<p>Disassembly of section .group:</p>
-<p>0000000000000000 &lt;.group&gt;:
-0:	01 00                	add    %eax,(%rax)
-2:	00 00                	add    %al,(%rax)
-4:	09 00                	or     %eax,(%rax)
-...</p>
-<p>Disassembly of section .text:</p>
-<p>0000000000000000 &lt;_Z3barv&gt;:
-0:	55                   	push   %rbp
-1:	48 89 e5             	mov    %rsp,%rbp
-4:	e8 00 00 00 00       	call   9 &lt;_Z3barv+0x9&gt;
-5: R_X86_64_PLT32	_ZN1A11func_staticEv-0x4
-9:	5d                   	pop    %rbp
-a:	c3                   	ret</p>
-<p>000000000000000b &lt;_Z3foov&gt;:
-b:	55                   	push   %rbp
-c:	48 89 e5             	mov    %rsp,%rbp
-f:	48 83 ec 10          	sub    $0x10,%rsp
-13:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
-1a:	00 00 
-1c:	48 89 45 f8          	mov    %rax,-0x8(%rbp)
-20:	31 c0                	xor    %eax,%eax
-22:	c7 45 f4 0a 00 00 00 	movl   $0xa,-0xc(%rbp)
-29:	48 8d 45 f4          	lea    -0xc(%rbp),%rax
-2d:	48 89 c7             	mov    %rax,%rdi
-30:	e8 00 00 00 00       	call   35 &lt;_Z3foov+0x2a&gt;
-31: R_X86_64_PLT32	_ZN1A4funcEv-0x4
-35:	48 8b 55 f8          	mov    -0x8(%rbp),%rdx
-39:	64 48 2b 14 25 28 00 	sub    %fs:0x28,%rdx
-40:	00 00 
-42:	74 05                	je     49 &lt;_Z3foov+0x3e&gt;
-44:	e8 00 00 00 00       	call   49 &lt;_Z3foov+0x3e&gt;
-45: R_X86_64_PLT32	__stack_chk_fail-0x4
-49:	c9                   	leave<br />
-4a:	c3                   	ret</p>
-<p>Disassembly of section .data:</p>
-<p>0000000000000000 &lt;_ZN1A1iE&gt;:
-0:	14 00                	adc    $0x0,%al
-...</p>
-<p>Disassembly of section .text._ZN1A11func_staticEv:</p>
-<p>0000000000000000 &lt;_ZN1A11func_staticEv&gt;:
-0:	55                   	push   %rbp
-1:	48 89 e5             	mov    %rsp,%rbp
-4:	8b 05 00 00 00 00    	mov    0x0(%rip),%eax        # a &lt;_ZN1A11func_staticEv+0xa&gt;
-6: R_X86_64_PC32	_ZN1A1iE-0x4
-a:	5d                   	pop    %rbp
-b:	c3                   	ret</p>
-<p>Disassembly of section .text._ZN1A4funcEv:</p>
-<p>0000000000000000 &lt;_ZN1A4funcEv&gt;:
-0:	55                   	push   %rbp
-1:	48 89 e5             	mov    %rsp,%rbp
-4:	48 89 7d f8          	mov    %rdi,-0x8(%rbp)
-8:	48 8b 45 f8          	mov    -0x8(%rbp),%rax
-c:	8b 00                	mov    (%rax),%eax
-e:	5d                   	pop    %rbp
-f:	c3                   	ret</p>
-<p>Disassembly of section .comment:</p>
-<p>0000000000000000 &lt;.comment&gt;:
-0:	00 47 43             	add    %al,0x43(%rdi)
-3:	43 3a 20             	rex.XB cmp (%r8),%spl
-6:	28 47 4e             	sub    %al,0x4e(%rdi)
-9:	55                   	push   %rbp
-a:	29 20                	sub    %esp,(%rax)
-c:	31 31                	xor    %esi,(%rcx)
-e:	2e 32 2e             	cs xor (%rsi),%ch
-11:	30 00                	xor    %al,(%rax)</p>
-<p>Disassembly of section .note.gnu.property:</p>
-<p>0000000000000000 &lt;.note.gnu.property&gt;:
-0:	04 00                	add    $0x0,%al
-2:	00 00                	add    %al,(%rax)
-4:	20 00                	and    %al,(%rax)
-6:	00 00                	add    %al,(%rax)
-8:	05 00 00 00 47       	add    $0x47000000,%eax
-d:	4e 55                	rex.WRX push %rbp
-f:	00 02                	add    %al,(%rdx)
-11:	00 01                	add    %al,(%rcx)
-13:	c0 04 00 00          	rolb   $0x0,(%rax,%rax,1)
-...
-1f:	00 01                	add    %al,(%rcx)
-21:	00 01                	add    %al,(%rcx)
-23:	c0 04 00 00          	rolb   $0x0,(%rax,%rax,1)
-27:	00 01                	add    %al,(%rcx)
-29:	00 00                	add    %al,(%rax)
-2b:	00 00                	add    %al,(%rax)
-2d:	00 00                	add    %al,(%rax)
-...</p>
-<p>Disassembly of section .eh_frame:</p>
-<p>0000000000000000 &lt;.eh_frame&gt;:
-0:	14 00                	adc    $0x0,%al
-2:	00 00                	add    %al,(%rax)
-4:	00 00                	add    %al,(%rax)
-6:	00 00                	add    %al,(%rax)
-8:	01 7a 52             	add    %edi,0x52(%rdx)
-b:	00 01                	add    %al,(%rcx)
-d:	78 10                	js     1f &lt;.eh_frame+0x1f&gt;
-f:	01 1b                	add    %ebx,(%rbx)
-11:	0c 07                	or     $0x7,%al
-13:	08 90 01 00 00 1c    	or     %dl,0x1c000001(%rax)
-19:	00 00                	add    %al,(%rax)
-1b:	00 1c 00             	add    %bl,(%rax,%rax,1)
-1e:	00 00                	add    %al,(%rax)
-20:	00 00                	add    %al,(%rax)
-20: R_X86_64_PC32	.text._ZN1A11func_staticEv
-22:	00 00                	add    %al,(%rax)
-24:	0c 00                	or     $0x0,%al
-26:	00 00                	add    %al,(%rax)
-28:	00 41 0e             	add    %al,0xe(%rcx)
-2b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
-31:	47 0c 07             	rex.RXB or $0x7,%al
-34:	08 00                	or     %al,(%rax)
-36:	00 00                	add    %al,(%rax)
-38:	1c 00                	sbb    $0x0,%al
-3a:	00 00                	add    %al,(%rax)
-3c:	3c 00                	cmp    $0x0,%al
-3e:	00 00                	add    %al,(%rax)
-40:	00 00                	add    %al,(%rax)
-40: R_X86_64_PC32	.text._ZN1A4funcEv
-42:	00 00                	add    %al,(%rax)
-44:	10 00                	adc    %al,(%rax)
-46:	00 00                	add    %al,(%rax)
-48:	00 41 0e             	add    %al,0xe(%rcx)
-4b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
-51:	4b 0c 07             	rex.WXB or $0x7,%al
-54:	08 00                	or     %al,(%rax)
-56:	00 00                	add    %al,(%rax)
-58:	1c 00                	sbb    $0x0,%al
-5a:	00 00                	add    %al,(%rax)
-5c:	5c                   	pop    %rsp
-5d:	00 00                	add    %al,(%rax)
-5f:	00 00                	add    %al,(%rax)
-60: R_X86_64_PC32	.text
-61:	00 00                	add    %al,(%rax)
-63:	00 0b                	add    %cl,(%rbx)
-65:	00 00                	add    %al,(%rax)
-67:	00 00                	add    %al,(%rax)
-69:	41 0e                	rex.B (bad) 
-6b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
-71:	46 0c 07             	rex.RX or $0x7,%al
-74:	08 00                	or     %al,(%rax)
-76:	00 00                	add    %al,(%rax)
-78:	1c 00                	sbb    $0x0,%al
-7a:	00 00                	add    %al,(%rax)
-7c:	7c 00                	jl     7e &lt;.eh_frame+0x7e&gt;
-7e:	00 00                	add    %al,(%rax)
-80:	00 00                	add    %al,(%rax)
-80: R_X86_64_PC32	.text+0xb
-82:	00 00                	add    %al,(%rax)
-84:	40 00 00             	rex add %al,(%rax)
-87:	00 00                	add    %al,(%rax)
-89:	41 0e                	rex.B (bad) 
-8b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
-91:	7b 0c                	jnp    9f &lt;_Z3foov+0x94&gt;
-93:	07                   	(bad)<br />
-94:	08 00                	or     %al,(%rax)
-...</p>
+<pre><code class="language-c">
+cls.o:     file format elf64-x86-64
+
+
+Disassembly of section .group:
+
+0000000000000000 &lt;.group&gt;:
+   0:	01 00                	add    %eax,(%rax)
+   2:	00 00                	add    %al,(%rax)
+   4:	07                   	(bad)  
+   5:	00 00                	add    %al,(%rax)
+   7:	00 08                	add    %cl,(%rax)
+   9:	00 00                	add    %al,(%rax)
+	...
+
+Disassembly of section .group:
+
+0000000000000000 &lt;.group&gt;:
+   0:	01 00                	add    %eax,(%rax)
+   2:	00 00                	add    %al,(%rax)
+   4:	09 00                	or     %eax,(%rax)
+	...
+
+Disassembly of section .text:
+
+0000000000000000 &lt;_Z3barv&gt;:
+   0:	55                   	push   %rbp
+   1:	48 89 e5             	mov    %rsp,%rbp
+   4:	e8 00 00 00 00       	call   9 &lt;_Z3barv+0x9&gt;
+			5: R_X86_64_PLT32	_ZN1A11func_staticEv-0x4
+   9:	5d                   	pop    %rbp
+   a:	c3                   	ret    
+
+000000000000000b &lt;_Z3foov&gt;:
+   b:	55                   	push   %rbp
+   c:	48 89 e5             	mov    %rsp,%rbp
+   f:	48 83 ec 10          	sub    $0x10,%rsp
+  13:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
+  1a:	00 00 
+  1c:	48 89 45 f8          	mov    %rax,-0x8(%rbp)
+  20:	31 c0                	xor    %eax,%eax
+  22:	c7 45 f4 0a 00 00 00 	movl   $0xa,-0xc(%rbp)
+  29:	48 8d 45 f4          	lea    -0xc(%rbp),%rax
+  2d:	48 89 c7             	mov    %rax,%rdi
+  30:	e8 00 00 00 00       	call   35 &lt;_Z3foov+0x2a&gt;
+			31: R_X86_64_PLT32	_ZN1A4funcEv-0x4
+  35:	48 8b 55 f8          	mov    -0x8(%rbp),%rdx
+  39:	64 48 2b 14 25 28 00 	sub    %fs:0x28,%rdx
+  40:	00 00 
+  42:	74 05                	je     49 &lt;_Z3foov+0x3e&gt;
+  44:	e8 00 00 00 00       	call   49 &lt;_Z3foov+0x3e&gt;
+			45: R_X86_64_PLT32	__stack_chk_fail-0x4
+  49:	c9                   	leave  
+  4a:	c3                   	ret    
+
+Disassembly of section .data:
+
+0000000000000000 &lt;_ZN1A1iE&gt;:
+   0:	14 00                	adc    $0x0,%al
+	...
+
+Disassembly of section .text._ZN1A11func_staticEv:
+
+0000000000000000 &lt;_ZN1A11func_staticEv&gt;:
+   0:	55                   	push   %rbp
+   1:	48 89 e5             	mov    %rsp,%rbp
+   4:	8b 05 00 00 00 00    	mov    0x0(%rip),%eax        # a &lt;_ZN1A11func_staticEv+0xa&gt;
+			6: R_X86_64_PC32	_ZN1A1iE-0x4
+   a:	5d                   	pop    %rbp
+   b:	c3                   	ret    
+
+Disassembly of section .text._ZN1A4funcEv:
+
+0000000000000000 &lt;_ZN1A4funcEv&gt;:
+   0:	55                   	push   %rbp
+   1:	48 89 e5             	mov    %rsp,%rbp
+   4:	48 89 7d f8          	mov    %rdi,-0x8(%rbp)
+   8:	48 8b 45 f8          	mov    -0x8(%rbp),%rax
+   c:	8b 00                	mov    (%rax),%eax
+   e:	5d                   	pop    %rbp
+   f:	c3                   	ret    
+
+Disassembly of section .comment:
+
+0000000000000000 &lt;.comment&gt;:
+   0:	00 47 43             	add    %al,0x43(%rdi)
+   3:	43 3a 20             	rex.XB cmp (%r8),%spl
+   6:	28 47 4e             	sub    %al,0x4e(%rdi)
+   9:	55                   	push   %rbp
+   a:	29 20                	sub    %esp,(%rax)
+   c:	31 31                	xor    %esi,(%rcx)
+   e:	2e 32 2e             	cs xor (%rsi),%ch
+  11:	30 00                	xor    %al,(%rax)
+
+Disassembly of section .note.gnu.property:
+
+0000000000000000 &lt;.note.gnu.property&gt;:
+   0:	04 00                	add    $0x0,%al
+   2:	00 00                	add    %al,(%rax)
+   4:	20 00                	and    %al,(%rax)
+   6:	00 00                	add    %al,(%rax)
+   8:	05 00 00 00 47       	add    $0x47000000,%eax
+   d:	4e 55                	rex.WRX push %rbp
+   f:	00 02                	add    %al,(%rdx)
+  11:	00 01                	add    %al,(%rcx)
+  13:	c0 04 00 00          	rolb   $0x0,(%rax,%rax,1)
+	...
+  1f:	00 01                	add    %al,(%rcx)
+  21:	00 01                	add    %al,(%rcx)
+  23:	c0 04 00 00          	rolb   $0x0,(%rax,%rax,1)
+  27:	00 01                	add    %al,(%rcx)
+  29:	00 00                	add    %al,(%rax)
+  2b:	00 00                	add    %al,(%rax)
+  2d:	00 00                	add    %al,(%rax)
+	...
+
+Disassembly of section .eh_frame:
+
+0000000000000000 &lt;.eh_frame&gt;:
+   0:	14 00                	adc    $0x0,%al
+   2:	00 00                	add    %al,(%rax)
+   4:	00 00                	add    %al,(%rax)
+   6:	00 00                	add    %al,(%rax)
+   8:	01 7a 52             	add    %edi,0x52(%rdx)
+   b:	00 01                	add    %al,(%rcx)
+   d:	78 10                	js     1f &lt;.eh_frame+0x1f&gt;
+   f:	01 1b                	add    %ebx,(%rbx)
+  11:	0c 07                	or     $0x7,%al
+  13:	08 90 01 00 00 1c    	or     %dl,0x1c000001(%rax)
+  19:	00 00                	add    %al,(%rax)
+  1b:	00 1c 00             	add    %bl,(%rax,%rax,1)
+  1e:	00 00                	add    %al,(%rax)
+  20:	00 00                	add    %al,(%rax)
+			20: R_X86_64_PC32	.text._ZN1A11func_staticEv
+  22:	00 00                	add    %al,(%rax)
+  24:	0c 00                	or     $0x0,%al
+  26:	00 00                	add    %al,(%rax)
+  28:	00 41 0e             	add    %al,0xe(%rcx)
+  2b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
+  31:	47 0c 07             	rex.RXB or $0x7,%al
+  34:	08 00                	or     %al,(%rax)
+  36:	00 00                	add    %al,(%rax)
+  38:	1c 00                	sbb    $0x0,%al
+  3a:	00 00                	add    %al,(%rax)
+  3c:	3c 00                	cmp    $0x0,%al
+  3e:	00 00                	add    %al,(%rax)
+  40:	00 00                	add    %al,(%rax)
+			40: R_X86_64_PC32	.text._ZN1A4funcEv
+  42:	00 00                	add    %al,(%rax)
+  44:	10 00                	adc    %al,(%rax)
+  46:	00 00                	add    %al,(%rax)
+  48:	00 41 0e             	add    %al,0xe(%rcx)
+  4b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
+  51:	4b 0c 07             	rex.WXB or $0x7,%al
+  54:	08 00                	or     %al,(%rax)
+  56:	00 00                	add    %al,(%rax)
+  58:	1c 00                	sbb    $0x0,%al
+  5a:	00 00                	add    %al,(%rax)
+  5c:	5c                   	pop    %rsp
+  5d:	00 00                	add    %al,(%rax)
+  5f:	00 00                	add    %al,(%rax)
+			60: R_X86_64_PC32	.text
+  61:	00 00                	add    %al,(%rax)
+  63:	00 0b                	add    %cl,(%rbx)
+  65:	00 00                	add    %al,(%rax)
+  67:	00 00                	add    %al,(%rax)
+  69:	41 0e                	rex.B (bad) 
+  6b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
+  71:	46 0c 07             	rex.RX or $0x7,%al
+  74:	08 00                	or     %al,(%rax)
+  76:	00 00                	add    %al,(%rax)
+  78:	1c 00                	sbb    $0x0,%al
+  7a:	00 00                	add    %al,(%rax)
+  7c:	7c 00                	jl     7e &lt;.eh_frame+0x7e&gt;
+  7e:	00 00                	add    %al,(%rax)
+  80:	00 00                	add    %al,(%rax)
+			80: R_X86_64_PC32	.text+0xb
+  82:	00 00                	add    %al,(%rax)
+  84:	40 00 00             	rex add %al,(%rax)
+  87:	00 00                	add    %al,(%rax)
+  89:	41 0e                	rex.B (bad) 
+  8b:	10 86 02 43 0d 06    	adc    %al,0x60d4302(%rsi)
+  91:	7b 0c                	jnp    9f &lt;_Z3foov+0x94&gt;
+  93:	07                   	(bad)  
+  94:	08 00                	or     %al,(%rax)
+	...
+</code></pre>
 <h1 id="匿名namespace"><a class="header" href="#匿名namespace">匿名namespace</a></h1>
 <p>匿名namespace用于编译单元级别的信息隐藏。匿名namespace中定义的名字，
 只在相同的编译单元中可以被看到。编译器会给这个命名空间生成一个唯一的名字。
